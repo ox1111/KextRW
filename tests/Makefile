@@ -1,5 +1,5 @@
 TESTS = $(wildcard *.c)
-CC = gccs
+CC = gcc
 CFLAGS = -Wall -Wextra -I../
 FRAMEWORKS = -framework IOKit -framework CoreFoundation
 
