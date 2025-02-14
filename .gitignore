@@ -1,0 +1,3 @@
+*.kext
+.DS_Store
+bin/
