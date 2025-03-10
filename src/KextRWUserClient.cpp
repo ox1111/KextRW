@@ -207,17 +207,19 @@ IOReturn KextRWUserClient::callKernelFunction(KextRWUserClient *client, void *re
 {
     uint64_t fn = args->scalarInput[0];
     if (!fn) return kIOReturnBadArgument;
-    uint64_t x0 = args->scalarInput[1];
-    uint64_t x1 = args->scalarInput[2];
-    uint64_t x2 = args->scalarInput[3];
-    uint64_t x3 = args->scalarInput[4];
-    uint64_t x4 = args->scalarInput[5];
-    uint64_t x5 = args->scalarInput[6];
-    uint64_t x6 = args->scalarInput[7];
-    uint64_t x7 = args->scalarInput[8];
+    uint64_t x0 = args->scalarInput[1] ? args->scalarInput[1] : 0;
+    uint64_t x1 = args->scalarInput[2] ? args->scalarInput[2] : 0;
+    uint64_t x2 = args->scalarInput[3] ? args->scalarInput[3] : 0;
+    uint64_t x3 = args->scalarInput[4] ? args->scalarInput[4] : 0;
+    uint64_t x4 = args->scalarInput[5] ? args->scalarInput[5] : 0;
+    uint64_t x5 = args->scalarInput[6] ? args->scalarInput[6] : 0;
+    uint64_t x6 = args->scalarInput[7] ? args->scalarInput[7] : 0;
+    uint64_t x7 = args->scalarInput[8] ? args->scalarInput[8] : 0;
     if (args->scalarInputCount > 9) return kIOReturnBadArgument;
 
-    uint64_t ret = arbitrary_call(x0, x1, x2, x3, x4, x5, x6, x7, fn);
+    uint64_t ret = 0;
+
+    arbitrary_call(x0, x1, x2, x3, x4, x5, x6, x7, fn, &ret);
 
     if (args->scalarOutputCount > 0) args->scalarOutput[0] = ret;
 

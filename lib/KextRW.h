@@ -12,7 +12,10 @@
 
 uint64_t gKernelBase = 0, gKernelSlide = 0;
 
-#define kslide(x) (x + gKernelSlide)
+// gKernelSlide matches the kernel slide in a panic log,
+// but we need to use the KernelCache slide, which is
+// always 0x8000 less than the normal kernel slide.
+#define kslide(x) (x + gKernelSlide - 0x8000)
 
 io_connect_t gClient = MACH_PORT_NULL;
 
@@ -184,6 +187,17 @@ void kwrite64(uint64_t addr, uint64_t val)
 int kwritebuf(uint64_t addr, void *buf, size_t len)
 {
     return kextrw_kwrite(gClient, buf, addr, len);
+}
+
+static uint64_t xpaci(uint64_t pointer)
+{
+	asm("xpaci %[value]\n" : [value] "+r"(pointer));
+	return pointer;
+}
+
+uint64_t kreadptr(uint64_t addr)
+{
+    return xpaci(kread64(addr));
 }
 
 /* Physical read/write */

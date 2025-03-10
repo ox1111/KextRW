@@ -21,6 +21,26 @@ L_kvtop_invalid:
     ret
 
 _arbitrary_call:
-    ldur x8, [sp]
-    xpaci x8
-    blr x8
+    pacibsp
+    ldp     x8, x9, [sp]
+    sub     sp, sp, #0x40
+    stp     fp, lr, [sp, #0x10]
+    stp     x19, x20, [sp, #0x30]
+
+    xpacd   x9
+    xpaci   x8
+    stur    x9, [sp, #0x20]
+    add     fp, sp, #0x20
+
+    // No point signing, compiler will optimise it out anyway
+    blr     x8
+
+    ldp     x19, x20, [sp, #0x30]
+    ldp     fp, lr, [sp, #0x10]
+    ldur    x8, [sp, #0x20]
+    add     sp, sp, #0x40
+
+    cbz     x8, 0f
+    stur    x0, [x8]
+0:
+    retab
