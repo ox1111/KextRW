@@ -8,7 +8,7 @@
 
 #define PAGE_ALIGN(x) (x & ~PAGE_MASK)
 
-#define STATIC_KERNEL_BASE (0xfffffe0007004000)
+#define STATIC_KERNEL_BASE (0xFFFFFE0007004000)
 
 uint64_t gKernelBase = 0, gKernelSlide = 0;
 
