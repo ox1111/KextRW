@@ -37,7 +37,7 @@ IOReturn KextRWUserClient::externalMethod(uint32_t selector, IOExternalMethodArg
         /* 4 */ { (IOExternalMethodAction)&KextRWUserClient::getResetVector, 0, 0, 1, 0 },
         /* 5 */ { (IOExternalMethodAction)&KextRWUserClient::kvtophys, 1, 0, 1, 0 },
         /* 6 */ { (IOExternalMethodAction)&KextRWUserClient::phystokv, 1, 0, 1, 0 },
-        /* 7 */ { (IOExternalMethodAction)&KextRWUserClient::callKernelFunction, 9, 0, 1, 0 },
+        /* 7 */ { (IOExternalMethodAction)&KextRWUserClient::callKernelFunction, 11, 0, 1, 0 },
         /* 8 */ { (IOExternalMethodAction)&KextRWUserClient::kallocBuffer, 1, 0, 1, 0 },
         /* 9 */ { (IOExternalMethodAction)&KextRWUserClient::kfreeBuffer, 2, 0, 1, 0 },
     };
@@ -205,23 +205,24 @@ IOReturn KextRWUserClient::phystokv(KextRWUserClient *client, void *reference, I
 
 IOReturn KextRWUserClient::callKernelFunction(KextRWUserClient *client, void *reference, IOExternalMethodArguments *args)
 {
+    if (args->scalarInputCount > 11) return kIOReturnBadArgument;
+    if (args->scalarOutputCount > 1) return kIOReturnBadArgument;
     uint64_t fn = args->scalarInput[0];
     if (!fn) return kIOReturnBadArgument;
-    uint64_t x0 = args->scalarInput[1] ? args->scalarInput[1] : 0;
-    uint64_t x1 = args->scalarInput[2] ? args->scalarInput[2] : 0;
-    uint64_t x2 = args->scalarInput[3] ? args->scalarInput[3] : 0;
-    uint64_t x3 = args->scalarInput[4] ? args->scalarInput[4] : 0;
-    uint64_t x4 = args->scalarInput[5] ? args->scalarInput[5] : 0;
-    uint64_t x5 = args->scalarInput[6] ? args->scalarInput[6] : 0;
-    uint64_t x6 = args->scalarInput[7] ? args->scalarInput[7] : 0;
-    uint64_t x7 = args->scalarInput[8] ? args->scalarInput[8] : 0;
-    if (args->scalarInputCount > 9) return kIOReturnBadArgument;
+    uint64_t a0 = args->scalarInput[1] ? args->scalarInput[1] : 0;
+    uint64_t a1 = args->scalarInput[2] ? args->scalarInput[2] : 0;
+    uint64_t a2 = args->scalarInput[3] ? args->scalarInput[3] : 0;
+    uint64_t a3 = args->scalarInput[4] ? args->scalarInput[4] : 0;
+    uint64_t a4 = args->scalarInput[5] ? args->scalarInput[5] : 0;
+    uint64_t a5 = args->scalarInput[6] ? args->scalarInput[6] : 0;
+    uint64_t a6 = args->scalarInput[7] ? args->scalarInput[7] : 0;
+    uint64_t a7 = args->scalarInput[8] ? args->scalarInput[8] : 0;
+    uint64_t a8 = args->scalarInput[9] ? args->scalarInput[9] : 0;
+    uint64_t a9 = args->scalarInput[10] ? args->scalarInput[10] : 0;
 
-    uint64_t ret = 0;
+    uint64_t ret = arbitrary_call(fn, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
 
-    arbitrary_call(x0, x1, x2, x3, x4, x5, x6, x7, fn, &ret);
-
-    if (args->scalarOutputCount > 0) args->scalarOutput[0] = ret;
+    if (args->scalarOutputCount) args->scalarOutput[0] = ret;
 
     return kIOReturnSuccess;
 }

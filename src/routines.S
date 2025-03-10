@@ -20,27 +20,36 @@ L_kvtop_invalid:
     mov x0, #0
     ret
 
+/* 10 64-bit argument kernel call primitive
+extern "C" uint64_t arbitrary_call
+(
+    uint64_t func,
+    ...
+);
+*/
 _arbitrary_call:
-    pacibsp
-    ldp     x8, x9, [sp]
-    sub     sp, sp, #0x40
-    stp     fp, lr, [sp, #0x10]
-    stp     x19, x20, [sp, #0x30]
 
-    xpacd   x9
-    xpaci   x8
-    stur    x9, [sp, #0x20]
-    add     fp, sp, #0x20
+    // Load the function pointer into X16
+    mov x16, x0
+    xpaci x16
+    
+    // Because this is a variadic function,
+    // up to 10 arguments are placed onto
+    // the stack, so we need to load them
+    // correctly for the call.
 
-    // No point signing, compiler will optimise it out anyway
-    blr     x8
+    // General purpose registers
+    ldp x0, x1, [sp]
+    ldp x2, x3, [sp, #0x10]
+    ldp x4, x5, [sp, #0x20]
+    ldp x6, x7, [sp, #0x30]
 
-    ldp     x19, x20, [sp, #0x30]
-    ldp     fp, lr, [sp, #0x10]
-    ldur    x8, [sp, #0x20]
-    add     sp, sp, #0x40
+    // Stack arguments
+    ldp x8, x9, [sp, #0x40]
+    stp x8, x9, [sp]
 
-    cbz     x8, 0f
-    stur    x0, [x8]
-0:
-    retab
+    // Clear X8 and X9 before the call
+    mov x8, #0
+    mov x9, #0
+
+    br x16
