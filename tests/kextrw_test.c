@@ -5,28 +5,38 @@
 #include <stdio.h>
 #include <unistd.h>
 
+// The following offsets are specific to my MacBook Pro M4 running 24C5089c
+
+/*
+Note: I have experienced some issues with calling some pmap functions (e.g. `pmap_enter_options_addr`), where my Mac seemingly panics, but there is no panic log once it powers back on. I have no idea what causes this, it could be something to do with SPTM.
+*/
+
 // Kernel functions
 #define PMAP_ENTER_OPTIONS_ADDR kslide(0xFFFFFE0008869DAC)
-#define PMAP_NEST kslide(0xFFFFFE0008876388)
-#define ML_STATIC_PTOVIRT kslide(0xFFFFFE000888F29C)
-#define PANIC kslide(0xFFFFFE0008F99D88)
-#define KAUTH_CRED_PROC_REF kslide(0xFFFFFE0008C30EF4)
-#define KAUTH_CRED_UNREF kslide(0xFFFFFE0008C32188)
+#define PMAP_MAP_BLOCK_ADDR     kslide(0xFFFFFE000887458C)
+#define PMAP_NEST               kslide(0xFFFFFE0008876388)
+#define PHYSTOKV                kslide(0xFFFFFE000888F29C)
+#define PANIC                   kslide(0xFFFFFE0008F99D88)
+#define KAUTH_CRED_PROC_REF     kslide(0xFFFFFE0008C30EF4)
+#define KAUTH_CRED_UNREF        kslide(0xFFFFFE0008C32188)
+#define ML_SIGN_THREAD_STATE    kslide(0xFFFFFE00086E3874)
 
-#define TASK_MAP kslide(0xFFFFFE00087B1AF8)
-#define TASK_PMAP kslide(0xFFFFFE00087B1F2C)
+#define TASK_MAP                kslide(0xFFFFFE00087B1AF8)
+#define TASK_PMAP               kslide(0xFFFFFE00087B1F2C)
 
 // Kernel constants and variables
-#define KERNPROC kslide(0xFFFFFE0007CA6F38)
-#define KERNEL_TASK kslide(0xFFFFFE0007CA5DF0)
-#define TASK_SIZE kslide(0xFFFFFE000C049520) // proc->task = proc + sizeof(proc)
+#define KERNPROC                kslide(0xFFFFFE0007CA6F38)
+#define KERNEL_TASK             kslide(0xFFFFFE0007CA5DF0)
+#define TASK_SIZE               kslide(0xFFFFFE000C049520) // proc->task = proc + sizeof(proc)
 
 // Kernel structure offsets
-#define off_proc_pid (0x60)
-#define off_proc_next (0x0)
-#define off_proc_prev (0x8)
-#define off_task_map (0x28)
-#define off_vm_map_pmap (0x40)
+#define off_proc_pid            (0x60)
+#define off_proc_next           (0x0)
+#define off_proc_prev           (0x8)
+#define off_task_map            (0x28)
+#define off_vm_map_pmap         (0x40)
+#define off_thread_contextData  (0x100)
+#define off_thread_cpudatap     (0x1B0)
 
 #define koffsetof(type, field) off_##type##_##field
 
@@ -96,9 +106,7 @@ int main(void) {
     printf("kvtophys(0x%llX) -> 0x%llX\n", kernelBase, kbasePA);
     printf("physread32(0x%llX) -> 0x%X\n", kbasePA, physread32(kbasePA));
 
-    uint64_t va = kcall(ML_STATIC_PTOVIRT, (uint64_t []){ kbasePA}, 1);
-
-    printf("ml_static_ptovirt(0x%llX) -> 0x%llX, kcall success!\n", kbasePA, va);
+    printf("phystokv(0x%llX) -> 0x%llX\n", kbasePA, kcall(PHYSTOKV, (uint64_t []){ kbasePA}, 1));
 
     kernproc = kreadptr(KERNPROC);
     uint64_t kernel_task = proc_task(kernproc);
