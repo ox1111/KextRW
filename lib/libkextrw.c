@@ -1,22 +1,13 @@
-#ifndef LIBKEXTRW_H
-#define LIBKEXTRW_H
-
+#include "libkextrw.h"
 #include <mach/kern_return.h>
 #include <stdio.h>
 #include <mach/mach.h>
 #include <IOKit/IOKitLib.h>
 #include <mach-o/loader.h>
 
-#define PAGE_ALIGN(x) (x & ~PAGE_MASK)
-
 #define STATIC_KERNEL_BASE (0xFFFFFE0007004000)
 
 uint64_t gKernelBase = 0, gKernelSlide = 0;
-
-// gKernelSlide matches the kernel slide in a panic log,
-// but we need to use the KernelCache slide, which is
-// always 0x8000 less than the normal kernel slide.
-#define kslide(x) (x + gKernelSlide - 0x8000)
 
 io_connect_t gClient = MACH_PORT_NULL;
 
@@ -200,6 +191,16 @@ uint64_t kreadptr(uint64_t addr)
     return xpaci(kread64(addr));
 }
 
+// macOS 15.3 KDK, ipc_entry_lookup
+uint64_t kreadptr_smr(uint64_t addr)
+{
+    uint64_t ptr = kreadptr(addr);
+    if ((ptr & 0x400000000000LL) != 0) {
+        return ptr & 0xFFFFFFFFFFFFFFE0LL;
+    }
+    return ptr;
+}
+
 /* Physical read/write */
 
 uint8_t physread8(uint64_t addr)
@@ -323,5 +324,3 @@ uint64_t get_kernel_base()
 
     return kernelBase;
 }
-
-#endif // LIBKEXTRW_H
