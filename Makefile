@@ -12,7 +12,7 @@ ifndef CXX_FLAGS
 CXX_FLAGS := --std=gnu++17 -Wall -O3 -nostdinc -nostdlib -mkernel -DKERNEL -isystem $(shell xcrun --show-sdk-path)/System/Library/Frameworks/Kernel.framework/Headers -Wl,-kext -lcc_kext $(CXXFLAGS)
 endif
 
-.PHONY: all clean lib build tests
+.PHONY: all clean lib build tests install
 
 all: $(TARGET).kext/Contents/_CodeSignature/CodeResources lib tests
 
@@ -38,6 +38,9 @@ lib: build
 
 tests: build
 	$(MAKE) -C $(TESTS) BUILD_DIR=../$(BUILD)
+
+install: all
+	sudo cp -r $(TARGET).kext /Library/Extensions
 
 clean:
 	rm -rf $(TARGET).kext $(BUILD)
