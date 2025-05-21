@@ -10,7 +10,7 @@ The features provided by this kernel extension include:
 * Kernel call primitive
 * Address translation
 
-The codebase is originally based on [IOKernelRW](https://github.com/Siguza/IOKernelRW), where you can find installation instructions, as they will be the same for this project. Any binary that wishes to create a userclient for this kernel extension must possess the `com.apple.security.alfie.kext-rw` entitlement. An easy-to-use test program can be found in the `tests/` folder, but the offsets and addresses are specific to my machine.
+The codebase is originally based on [IOKernelRW](https://github.com/ox1111/IOKernelRW), where you can find installation instructions, as they will be the same for this project. Any binary that wishes to create a userclient for this kernel extension must possess the `com.apple.security.alfie.kext-rw` entitlement. An easy-to-use test program can be found in the `tests/` folder, but the offsets and addresses are specific to my machine.
 
 You can find the path to your kernelcache by running `kmutil inspect` - it will be printed at the top. This will be necessary if you would like to update the offsets and addresses in `kextrw_test.c`. I have not tested this on anything other than macOS 15.2.
 
