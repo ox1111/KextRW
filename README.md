@@ -1,6 +1,6 @@
 
 
-# KextRW
+# KextRW(한글 버전)
 
 **KextRW**는 macOS의 XNU 커널을 대상으로 한 **보안 및 취약점 연구에 유용한 기능들을 제공하는 커널 확장(Kernel Extension)** 입니다.
 
@@ -86,7 +86,7 @@ make all
 
 
 
-# KextRW
+# KextRW(영문 버전)
 
 A macOS kernel extension offering several features useful for security/vulnerability research against XNU.
 
